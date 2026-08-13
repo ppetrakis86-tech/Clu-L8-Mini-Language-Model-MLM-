@@ -1,0 +1,135 @@
+
+<div style="padding: 1rem 0;">
+<div style="display: flex; gap: 16px; margin-bottom: 1rem; font-size: 12px; color: var(--text-secondary);">
+  <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:#2a78d6;"></span>Loss</span>
+  <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:3px;background:#eb6834;display:inline-block;border-top:2px dashed #eb6834;"></span>LR (scaled)</span>
+</div>
+<div style="position:relative;width:100%;height:320px;">
+  <canvas id="lossChart" role="img" aria-label="Καμπύλη training loss Clu-L8 κατά τη διάρκεια 4 epochs">Loss ξεκίνησε στο 4.8 και κατέβηκε σταθερά στο ~1.25</canvas>
+</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const labels = [
+  'e2:0','e2:100','e2:200','e2:300','e2:400','e2:500','e2:600','e2:700','e2:800','e2:900',
+  'e2:1000','e2:1100','e2:1200','e2:1300','e2:1400','e2:1500','e2:1600','e2:1700','e2:1800','e2:1900',
+  'e2:2000','e2:2100','e2:2200','e2:2300','e2:2400','e2:2500','e2:2600','e2:2700','e2:2800','e2:2900',
+  'e2:3000','e2:3100',
+  'e3:0','e3:100','e3:200','e3:300','e3:400','e3:500','e3:600','e3:700','e3:800','e3:900',
+  'e3:1000','e3:1100','e3:1200','e3:1300','e3:1400','e3:1500','e3:1600','e3:1700','e3:1800','e3:1900',
+  'e3:2000','e3:2100','e3:2200','e3:2300','e3:2400','e3:2500','e3:2600','e3:2700','e3:2800','e3:2900',
+  'e3:3000','e3:3100',
+  'e4:0','e4:100','e4:200','e4:300','e4:400','e4:500','e4:600','e4:700','e4:800'
+];
+const loss = [
+  1.3334,1.2891,1.2462,1.3509,1.2936,1.3153,1.2353,1.3087,1.2092,1.3345,
+  1.3015,1.3079,1.2155,1.2830,1.2802,1.2764,1.2968,1.2377,1.2946,1.2469,
+  1.2546,1.2308,1.2865,1.3324,1.3761,1.3289,1.2820,1.2527,1.1976,1.3529,
+  1.3171,1.2612,
+  1.2722,1.2492,1.2561,1.2986,1.2155,1.2557,1.2893,1.3150,1.2687,1.3519,
+  1.2821,1.2671,1.2594,1.2545,1.2823,1.2238,1.2756,1.2819,1.1864,1.3213,
+  1.3262,1.3316,1.2880,1.2394,1.2327,1.2371,1.2449,1.2763,1.2154,1.2592,
+  1.2688,1.2433,
+  1.2976,1.2724,1.2508,1.3137,1.2429,1.2229,1.2713,1.2156,1.2305
+];
+const lr = [
+  2.00,2.00,2.00,2.00,1.99,1.99,1.98,1.97,1.97,1.96,
+  1.95,1.94,1.92,1.91,1.90,1.88,1.87,1.85,1.83,1.81,
+  1.79,1.77,1.75,1.73,1.71,1.69,1.66,1.64,1.61,1.59,
+  1.56,1.53,
+  1.52,1.50,1.47,1.44,1.41,1.38,1.35,1.32,1.29,1.26,
+  1.23,1.20,1.16,1.13,1.10,1.07,1.04,1.01,0.974,0.942,
+  0.911,0.879,0.848,0.817,0.787,0.756,0.726,0.696,0.667,0.638,
+  0.610,0.582,
+  0.575,0.547,0.521,0.495,0.469,0.444,0.420,0.397,0.374
+];
+
+const epochBoundaries = [0, 32, 64];
+const epochLabels = ['Epoch 2','Epoch 3','Epoch 4'];
+
+new Chart(document.getElementById('lossChart'), {
+  type: 'line',
+  data: {
+    labels,
+    datasets: [
+      {
+        label: 'Loss',
+        data: loss,
+        borderColor: '#2a78d6',
+        backgroundColor: 'rgba(42,120,214,0.08)',
+        borderWidth: 2,
+        pointRadius: 0,
+        tension: 0.3,
+        fill: true,
+        yAxisID: 'y'
+      },
+      {
+        label: 'LR (×10⁻⁴)',
+        data: lr,
+        borderColor: '#eb6834',
+        borderWidth: 1.5,
+        borderDash: [4,3],
+        pointRadius: 0,
+        tension: 0.3,
+        fill: false,
+        yAxisID: 'y2'
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => ctx.datasetIndex === 0
+            ? `Loss: ${ctx.parsed.y.toFixed(4)}`
+            : `LR: ${(ctx.parsed.y * 1e-4).toExponential(2)}`
+        }
+      },
+      annotation: {
+        annotations: epochBoundaries.map((x, i) => ({
+          type: 'line',
+          xMin: x, xMax: x,
+          borderColor: 'rgba(136,135,128,0.4)',
+          borderWidth: 1,
+          borderDash: [3,3],
+          label: {
+            content: epochLabels[i],
+            display: true,
+            position: 'start',
+            color: '#898781',
+            font: { size: 11 }
+          }
+        }))
+      }
+    },
+    scales: {
+      x: {
+        ticks: {
+          color: '#898781',
+          font: { size: 10 },
+          maxTicksLimit: 8,
+          autoSkip: true
+        },
+        grid: { color: 'rgba(193,194,183,0.3)' }
+      },
+      y: {
+        title: { display: true, text: 'Loss', color: '#898781', font: { size: 11 } },
+        ticks: { color: '#898781', font: { size: 11 } },
+        grid: { color: 'rgba(193,194,183,0.3)' },
+        min: 1.1,
+        max: 1.45
+      },
+      y2: {
+        position: 'right',
+        title: { display: true, text: 'LR (×10⁻⁴)', color: '#eb6834', font: { size: 11 } },
+        ticks: { color: '#eb6834', font: { size: 11 } },
+        grid: { drawOnChartArea: false }
+      }
+    }
+  }
+});
+</script>
